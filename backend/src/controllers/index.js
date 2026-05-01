@@ -573,7 +573,7 @@ const analyticsController = {
       doc.pipe(res);
 
       const stats = analytics[0] || { totalRevenue: 0, totalOrders: 0, paid: 0, avgOrder: 0 };
-      const fmt = (n) => `KES ${Number(n).toLocaleString('en-TZ', { minimumFractionDigits: 2 })}`;
+      const fmt = (n) => `TSH ${Number(n).toLocaleString('en-TZ', { minimumFractionDigits: 2 })}`;
       const BRAND = '#f97316';
       const DARK = '#1c1917';
       const MID = '#78716c';

@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   const fetchData = useCallback(async () => {
     try {
       const [analyticsRes, ordersRes] = await Promise.all([
-        api.get('/analytics/orders'),
+        api.get('/analytics/today'),
         api.get('/orders', { params: { limit: 8 } }),
       ]);
       const { today, statusBreakdown } = analyticsRes.data.data;
