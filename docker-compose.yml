@@ -22,11 +22,11 @@ services:
       - "5000:5000"
     environment:
       PORT: 5000
-      NODE_ENV: development
-      MONGODB_URI: mongodb://mongo:27017/restaurantOS
-      JWT_SECRET: local_dev_secret_change_in_production
+      NODE_ENV: production
+      MONGODB_URI: mongodb+srv://alnayanalbashir4:alnayanhealth@health.mtmv4.mongodb.net/restaurantOS?retryWrites=true&w=majority
+      JWT_SECRET: change_this_to_a_very_long_random_secret_string_at_least_64_chars
       JWT_EXPIRES_IN: 7d
-      FRONTEND_URL: http://localhost:3000
+      FRONTEND_URL: https://restaurantms-frontend.onrender.com
       # Add your Cloudinary & Stripe keys here or via .env
     depends_on:
       - mongo
@@ -42,10 +42,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:5000/api
-      NEXT_PUBLIC_SOCKET_URL: http://localhost:5000
+      NEXT_PUBLIC_API_URL: https://restaurantms-backend.onrender.com/api
+      NEXT_PUBLIC_SOCKET_URL: https://restaurantms-backend.onrender.com
     depends_on:
       - backend
 
 volumes:
   mongo_data:
+
