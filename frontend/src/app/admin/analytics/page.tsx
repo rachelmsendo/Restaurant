@@ -128,8 +128,17 @@ export default function AdminAnalyticsPage() {
         {/* Revenue Chart */}
         <div className="card p-6 lg:col-span-2">
           <h2 className="font-semibold text-stone-900 mb-5">Revenue Over Time</h2>
-          {loading ? <div className="h-48 flex items-end gap-2">{Array.from({length:7}).map((_,i)=><Skeleton key={i} className="flex-1 rounded-t-lg" style={{height:`${30+Math.random()*60}%`}}/>)}</div>
-          : data?.revenueByDay?.length===0 ? <div className="h-48 flex items-center justify-center text-stone-400 text-sm">No revenue data for this period</div>
+{loading ? <div className="h-48 flex items-end gap-2">
+  {Array.from({length:7}).map((_,i)=>(
+    <div
+      key={i}
+      className="flex-1 rounded-t-lg"
+      style={{height:`${30+Math.random()*60}%`}}
+    >
+      <Skeleton className="w-full h-full rounded-t-lg"/>
+    </div>
+  ))}
+</div>          : data?.revenueByDay?.length===0 ? <div className="h-48 flex items-center justify-center text-stone-400 text-sm">No revenue data for this period</div>
           : (
             <div>
               <div className="flex items-end gap-1.5 h-48 mb-2">
