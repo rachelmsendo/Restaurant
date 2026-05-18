@@ -90,19 +90,29 @@ export default function MenuPageClient() {
   }, [tableId, dispatch]);
 
   // Filtered items
-  const filteredItems = items.filter(item => {
-    const matchCat = activeCategory ? item.category._id === activeCategory : true;
-    const matchSearch = searchQuery
-      ? item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    return matchSearch ? matchSearch : matchCat && matchSearch;
-  });
+const filteredItems = items.filter(item => {
+  const matchCategory =
+    !activeCategory || item.category?._id === activeCategory;
 
-  const displayItems = searchQuery ? items.filter(i =>
-    i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    i.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) : filteredItems;
+  const matchSearch =
+    !searchQuery ||
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  return matchCategory && matchSearch;
+});
+
+const displayItems = items.filter(item => {
+  const matchCategory =
+    !activeCategory || item.category?._id === activeCategory;
+
+  const matchSearch =
+    !searchQuery ||
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  return matchCategory && matchSearch;
+});
 
   const cartCount = cart.items.reduce((s: number, i: any) => s + i.quantity, 0);
   const cartTotal = cart.items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);

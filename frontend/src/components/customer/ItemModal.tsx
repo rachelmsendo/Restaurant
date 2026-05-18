@@ -27,6 +27,14 @@ export default function ItemModal({ item, onClose }: { item: any; onClose: () =>
 
   return (
     <Modal isOpen={!!item} onClose={onClose}>
+        <div className="absolute top-3 right-3 z-50">
+    <button
+      onClick={onClose}
+      className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-md hover:bg-stone-100 transition"
+    >
+      ✕
+    </button>
+  </div>
       {/* Images */}
       <div className="p-4 pb-0">
         {item.images?.length > 0

@@ -284,33 +284,84 @@ const tableController = {
 
 // ── ORDERS ────────────────────────────────────────────────────────────────────
 const orderController = {
-  create: async (req, res, next) => {
-    try {
-      const { tableId, items, customerName, customerPhone, notes } = req.body;
-      const table = await Table.findById(tableId);
-      if (!table) return res.status(404).json({ success: false, message: 'Table not found' });
-      const menuItemIds = items.map(i => i.menuItemId);
-      const menuItems = await MenuItem.find({ _id: { $in: menuItemIds }, isAvailable: true });
-      const orderItems = items.map(item => {
-        const mi = menuItems.find(m => m._id.toString() === item.menuItemId);
-        if (!mi) throw { statusCode: 400, message: `Item not available` };
-        return { menuItem: mi._id, name: mi.name, price: mi.price, quantity: item.quantity, notes: item.notes, image: mi.images?.[0]?.url };
+create: async (req, res, next) => {
+  try {
+    const {
+      tableId,
+      items,
+      customerName,
+      customerPhone, // ✅ REQUIRED
+      notes
+    } = req.body;
+
+    if (!customerPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required for communication'
       });
-      const subtotal = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
-      const tax = Math.round(subtotal * 0.16);
-      const total = subtotal + tax;
-      const order = await Order.create({
-        table: tableId, tableNumber: table.number, customerName, customerPhone,
-        items: orderItems, subtotal, tax, total, notes,
-        statusHistory: [{ status: 'pending' }],
-      });
-      await MenuItem.updateMany({ _id: { $in: menuItemIds } }, { $inc: { totalOrders: 1 } });
-      await Table.findByIdAndUpdate(tableId, { status: 'occupied' });
-      await order.populate([{ path: 'table', select: 'number name section' }]);
-      emitNewOrder(order);
-      res.status(201).json({ success: true, data: { order } });
-    } catch (err) { next(err); }
-  },
+    }
+
+    const table = await Table.findById(tableId);
+    if (!table)
+      return res.status(404).json({ success: false, message: 'Table not found' });
+
+    const menuItemIds = items.map(i => i.menuItemId);
+    const menuItems = await MenuItem.find({
+      _id: { $in: menuItemIds },
+      isAvailable: true
+    });
+
+    const orderItems = items.map(item => {
+      const mi = menuItems.find(m => m._id.toString() === item.menuItemId);
+      if (!mi) throw { statusCode: 400, message: `Item not available` };
+
+      return {
+        menuItem: mi._id,
+        name: mi.name,
+        price: mi.price,
+        quantity: item.quantity,
+        notes: item.notes,
+        image: mi.images?.[0]?.url
+      };
+    });
+
+    const subtotal = orderItems.reduce(
+      (s, i) => s + i.price * i.quantity,
+      0
+    );
+
+    const tax = Math.round(subtotal * 0.16);
+    const total = subtotal + tax;
+
+    const order = await Order.create({
+      table: tableId,
+      tableNumber: table.number,
+      customerName,
+      customerPhone, // ✅ SAVE PHONE
+      items: orderItems,
+      subtotal,
+      tax,
+      total,
+      notes,
+      statusHistory: [{ status: 'pending' }],
+    });
+
+    await MenuItem.updateMany(
+      { _id: { $in: menuItemIds } },
+      { $inc: { totalOrders: 1 } }
+    );
+
+    await Table.findByIdAndUpdate(tableId, { status: 'occupied' });
+
+    await order.populate([{ path: 'table', select: 'number name section' }]);
+
+    emitNewOrder(order);
+
+    res.status(201).json({ success: true, data: { order } });
+  } catch (err) {
+    next(err);
+  }
+},
   getAll: async (req, res, next) => {
     try {
       const { status, tableId, date, startDate, endDate, paymentStatus, page = 1, limit = 30 } = req.query;
@@ -391,26 +442,72 @@ const paymentController = {
       res.json({ success: true, data: { clientSecret: pi.client_secret } });
     } catch (err) { next(err); }
   },
-  initiateMpesa: async (req, res, next) => {
-    try {
-      const { orderId, phoneNumber } = req.body;
-      const order = await Order.findById(orderId);
-      if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-      const checkoutRequestId = `MPESA-${Date.now()}-${Math.random().toString(36).substr(2,9).toUpperCase()}`;
-      const payment = await Payment.create({ order: orderId, amount: order.total, currency: 'TZS', method: 'mpesa', status: 'pending', mpesaCheckoutRequestId: checkoutRequestId, phoneNumber });
-      // Simulate async M-Pesa confirmation
-      setTimeout(async () => {
-        try {
-          const receipt = `RCP${Date.now().toString().slice(-8)}`;
-          await Payment.findByIdAndUpdate(payment._id, { status: 'completed', mpesaReceiptNumber: receipt, paidAt: new Date() });
-          await Order.findByIdAndUpdate(orderId, { paymentStatus: 'paid', paymentMethod: 'mpesa' });
-          const updatedOrder = await Order.findById(orderId);
-          emitPaymentSuccess(updatedOrder, { amount: order.total });
-        } catch {}
-      }, 5000);
-      res.json({ success: true, data: { message: 'STK push sent', checkoutRequestId, paymentId: payment._id } });
-    } catch (err) { next(err); }
-  },
+initiateMobileMoney: async (req, res, next) => {
+  try {
+    const { orderId, phoneNumber, provider } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order)
+      return res.status(404).json({ success: false, message: 'Order not found' });
+
+    const supported = [
+      'mpesa',
+      'tigopesa',
+      'airtelmoney',
+      'halopesa',
+      'mixx',
+    ];
+
+    if (!supported.includes(provider)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unsupported mobile money provider',
+      });
+    }
+
+    const checkoutRequestId = `${provider.toUpperCase()}-${Date.now()}`;
+
+    const payment = await Payment.create({
+      order: orderId,
+      amount: order.total,
+      currency: 'TZS',
+      method: provider,
+      status: 'pending',
+      mpesaCheckoutRequestId: checkoutRequestId,
+      phoneNumber,
+    });
+
+    // simulate provider callback
+    setTimeout(async () => {
+      const receipt = `RCPT-${Date.now()}`;
+
+      await Payment.findByIdAndUpdate(payment._id, {
+        status: 'completed',
+        mpesaReceiptNumber: receipt,
+        paidAt: new Date(),
+      });
+
+      await Order.findByIdAndUpdate(orderId, {
+        paymentStatus: 'paid',
+        paymentMethod: provider,
+      });
+
+      const updatedOrder = await Order.findById(orderId);
+      emitPaymentSuccess(updatedOrder, { amount: order.total });
+    }, 5000);
+
+    res.json({
+      success: true,
+      data: {
+        message: `${provider} STK initiated`,
+        checkoutRequestId,
+        paymentId: payment._id,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+},
   stripeWebhook: async (req, res, next) => {
     const sig = req.headers['stripe-signature'];
     let event;
