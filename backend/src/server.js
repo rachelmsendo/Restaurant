@@ -5,11 +5,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+
 const connectDB = require('./config/database');
 const { initSocket } = require('./sockets');
 const errorHandler = require('./middleware/errorHandler');
 const { authenticate, authorize } = require('./middleware/auth');
 const { uploadMenuImages, uploadAvatar } = require('./config/cloudinary');
+
 const {
   authController, staffController, menuController, categoryController,
   tableController, orderController, paymentController, analyticsController, reviewController
@@ -17,22 +19,81 @@ const {
 
 const app = express();
 const server = http.createServer(app);
+
 initSocket(server);
 connectDB();
 
+/* =========================
+   🔥 FIXED CORS CONFIG
+========================= */
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://restaurantms-frontend.onrender.com',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow Postman / mobile apps
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log('❌ Blocked CORS origin:', origin);
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
+// Handle preflight requests properly
+app.options('*', cors());
+
+/* =========================
+   SECURITY + MIDDLEWARE
+========================= */
+
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000', credentials: true }));
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
-app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() }));
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+/* =========================
+   HEALTH CHECK
+========================= */
+
+app.get('/health', (req, res) =>
+  res.json({
+    status: 'ok',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  })
+);
 
 const R = express.Router;
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
+/* =========================
+   AUTH
+========================= */
+
 const authR = R();
 authR.post('/login', authController.login);
 authR.post('/register', authenticate, authorize('admin'), uploadAvatar, authController.register);
@@ -40,7 +101,10 @@ authR.get('/me', authenticate, authController.me);
 authR.put('/profile', authenticate, uploadAvatar, authController.updateProfile);
 app.use('/api/auth', authR);
 
-// ── STAFF ─────────────────────────────────────────────────────────────────────
+/* =========================
+   STAFF
+========================= */
+
 const staffR = R();
 staffR.get('/', authenticate, authorize('admin'), staffController.getAll);
 staffR.get('/:id', authenticate, authorize('admin'), staffController.getOne);
@@ -49,7 +113,10 @@ staffR.delete('/:id', authenticate, authorize('admin'), staffController.delete);
 staffR.patch('/:id/toggle-active', authenticate, authorize('admin'), staffController.toggleActive);
 app.use('/api/staff', staffR);
 
-// ── MENU ──────────────────────────────────────────────────────────────────────
+/* =========================
+   MENU
+========================= */
+
 const menuR = R();
 menuR.get('/', menuController.getFullMenu);
 menuR.get('/items', menuController.getItems);
@@ -60,7 +127,10 @@ menuR.delete('/items/:id', authenticate, authorize('admin'), menuController.dele
 menuR.post('/items/:id/rate', menuController.rateItem);
 app.use('/api/menu', menuR);
 
-// ── CATEGORIES ────────────────────────────────────────────────────────────────
+/* =========================
+   CATEGORIES
+========================= */
+
 const catR = R();
 catR.get('/', categoryController.getAll);
 catR.post('/', authenticate, authorize('admin'), categoryController.create);
@@ -68,7 +138,10 @@ catR.put('/:id', authenticate, authorize('admin'), categoryController.update);
 catR.delete('/:id', authenticate, authorize('admin'), categoryController.delete);
 app.use('/api/categories', catR);
 
-// ── TABLES ────────────────────────────────────────────────────────────────────
+/* =========================
+   TABLES
+========================= */
+
 const tableR = R();
 tableR.get('/', authenticate, authorize('admin', 'staff'), tableController.getAll);
 tableR.get('/:id', tableController.getOne);
@@ -78,7 +151,10 @@ tableR.delete('/:id', authenticate, authorize('admin'), tableController.delete);
 tableR.post('/:id/regenerate-qr', authenticate, authorize('admin'), tableController.regenerateQR);
 app.use('/api/tables', tableR);
 
-// ── ORDERS ────────────────────────────────────────────────────────────────────
+/* =========================
+   ORDERS
+========================= */
+
 const orderR = R();
 orderR.post('/', orderController.create);
 orderR.get('/', authenticate, authorize('admin', 'staff', 'kitchen'), orderController.getAll);
@@ -89,7 +165,10 @@ orderR.patch('/:id/priority', authenticate, authorize('admin', 'staff', 'kitchen
 orderR.post('/:id/rate', orderController.addRating);
 app.use('/api/orders', orderR);
 
-// ── PAYMENTS ──────────────────────────────────────────────────────────────────
+/* =========================
+   PAYMENTS
+========================= */
+
 const payR = R();
 payR.post('/stripe/initiate', paymentController.initiateStripe);
 payR.post('/mpesa/initiate', paymentController.initiateMpesa);
@@ -97,7 +176,10 @@ payR.post('/webhook', paymentController.stripeWebhook);
 payR.get('/:id/status', paymentController.checkStatus);
 app.use('/api/payments', payR);
 
-// ── ANALYTICS ─────────────────────────────────────────────────────────────────
+/* =========================
+   ANALYTICS
+========================= */
+
 const analyticsR = R();
 analyticsR.get('/overview', authenticate, authorize('admin'), analyticsController.overview);
 analyticsR.get('/today', authenticate, authorize('admin', 'staff'), analyticsController.todayStats);
@@ -105,17 +187,34 @@ analyticsR.get('/export/csv', authenticate, authorize('admin'), analyticsControl
 analyticsR.get('/export/pdf', authenticate, authorize('admin'), analyticsController.exportPDF);
 app.use('/api/analytics', analyticsR);
 
-// ── REVIEWS ───────────────────────────────────────────────────────────────────
+/* =========================
+   REVIEWS
+========================= */
+
 const reviewR = R();
 reviewR.post('/', reviewController.create);
 reviewR.get('/', authenticate, authorize('admin'), reviewController.getAll);
 app.use('/api/reviews', reviewR);
 
-app.use('*', (req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
+/* =========================
+   404 + ERROR HANDLER
+========================= */
+
+app.use('*', (req, res) =>
+  res.status(404).json({ success: false, message: 'Route not found' })
+);
+
 app.use(errorHandler);
 
+/* =========================
+   START SERVER
+========================= */
+
 const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, () => {
-  console.log(`🚀 RestaurantOS API on port ${PORT} [${process.env.NODE_ENV}]`);
+  console.log(`🚀 RestaurantOS API running on port ${PORT}`);
+  console.log('🌍 Allowed CORS origins:', allowedOrigins);
 });
+
 module.exports = server;

@@ -30,10 +30,81 @@ export default function AdminStaffPage() {
   const openEdit = (user: any) => { setEditing(user); setModalOpen(true); };
   const openDetail = (user: any) => { setViewing(user); setDetailOpen(true); };
 
-  const handleSaved = (saved: any) => {
-    setStaff(p => editing ? p.map(u => u._id===saved._id?saved:u) : [saved,...p]);
-    setModalOpen(false);
+// Replace ONLY the handleSaved function with this updated version
+
+const handleSaved = (saved: any) => {
+  // Normalize the response because different APIs may return:
+  // - res.data.data.user
+  // - res.data.data.users
+  // - fallback object
+  const normalizedUser =
+    saved?.user ||
+    saved?.users ||
+    saved?.data?.user ||
+    saved?.data?.users ||
+    saved;
+
+  // Ensure required fields exist to prevent runtime errors such as:
+  // - user.name[0].toUpperCase()
+  // - formatDate(user.createdAt)
+  // - key={user._id}
+  const safeUser = {
+    _id:
+      normalizedUser?._id ||
+      normalizedUser?.id ||
+      `temp-${Date.now()}`,
+
+    name:
+      normalizedUser?.name ||
+      'Unnamed Staff',
+
+    email:
+      normalizedUser?.email ||
+      '',
+
+    phone:
+      normalizedUser?.phone ||
+      '',
+
+    role:
+      normalizedUser?.role ||
+      'staff',
+
+    isActive:
+      typeof normalizedUser?.isActive === 'boolean'
+        ? normalizedUser.isActive
+        : true,
+
+    avatar:
+      normalizedUser?.avatar ||
+      null,
+
+    createdAt:
+      normalizedUser?.createdAt ||
+      new Date().toISOString(),
+
+    lastLogin:
+      normalizedUser?.lastLogin ||
+      null,
   };
+
+  // Update the staff list safely
+  setStaff((prev) =>
+    editing
+      ? prev.map((u) =>
+          u._id === safeUser._id
+            ? { ...u, ...safeUser }
+            : u
+        )
+      : [safeUser, ...prev]
+  );
+
+  // Close modal
+  setModalOpen(false);
+
+  // Clear editing state
+  setEditing(null);
+};
 
   const toggleActive = async (user: any) => {
     try {
