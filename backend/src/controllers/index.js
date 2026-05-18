@@ -447,8 +447,12 @@ initiateMobileMoney: async (req, res, next) => {
     const { orderId, phoneNumber, provider } = req.body;
 
     const order = await Order.findById(orderId);
-    if (!order)
-      return res.status(404).json({ success: false, message: 'Order not found' });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
 
     const supported = [
       'mpesa',
@@ -465,7 +469,8 @@ initiateMobileMoney: async (req, res, next) => {
       });
     }
 
-    const checkoutRequestId = `${provider.toUpperCase()}-${Date.now()}`;
+    // 🔥 universal reference (NO mpesa naming)
+    const providerReference = `${provider.toUpperCase()}-${Date.now()}`;
 
     const payment = await Payment.create({
       order: orderId,
@@ -473,17 +478,17 @@ initiateMobileMoney: async (req, res, next) => {
       currency: 'TZS',
       method: provider,
       status: 'pending',
-      mpesaCheckoutRequestId: checkoutRequestId,
+      providerReference,
       phoneNumber,
     });
 
-    // simulate provider callback
+    // 🔥 simulate async provider callback (same for ALL providers)
     setTimeout(async () => {
-      const receipt = `RCPT-${Date.now()}`;
+      const providerReceipt = `RCPT-${provider.toUpperCase()}-${Date.now()}`;
 
       await Payment.findByIdAndUpdate(payment._id, {
         status: 'completed',
-        mpesaReceiptNumber: receipt,
+        providerReceipt,
         paidAt: new Date(),
       });
 
@@ -499,8 +504,8 @@ initiateMobileMoney: async (req, res, next) => {
     res.json({
       success: true,
       data: {
-        message: `${provider} STK initiated`,
-        checkoutRequestId,
+        message: `${provider} payment initiated`,
+        providerReference,
         paymentId: payment._id,
       },
     });

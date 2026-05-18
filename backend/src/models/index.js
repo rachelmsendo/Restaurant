@@ -178,8 +178,9 @@ const paymentSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },
   stripePaymentIntentId: String,
   stripeClientSecret: String,
-  mpesaCheckoutRequestId: String,
-  mpesaReceiptNumber: String,
+  // 🔥 generic provider tracking (NOT Mpesa-specific anymore)
+  providerReference: { type: String },   // universal request id
+  providerReceipt: { type: String },      // universal receipt id
   phoneNumber: String,
   metadata: mongoose.Schema.Types.Mixed,
   paidAt: Date,
