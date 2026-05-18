@@ -54,8 +54,8 @@ orderRouter.put('/:id/status', authenticate, authorize('admin', 'staff', 'kitche
 const paymentRouter = express.Router();
 const { paymentController } = require('../controllers');
 
-paymentRouter.post('/mobile/initiate', paymentController.initiateMobileMoney);
 paymentRouter.post('/stripe/initiate', paymentController.initiateStripe);
+paymentRouter.post('/mobile-money/initiate', paymentController.initiateMobileMoney);
 paymentRouter.post('/webhook', paymentController.stripeWebhook);
 paymentRouter.get('/:id/status', paymentController.checkStatus);
 

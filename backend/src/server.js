@@ -171,7 +171,7 @@ app.use('/api/orders', orderR);
 
 const payR = R();
 payR.post('/stripe/initiate', paymentController.initiateStripe);
-payR.post('/mpesa/initiate', paymentController.initiateMpesa);
+payR.post('/mobile-money/initiate', paymentController.initiateMobileMoney);
 payR.post('/webhook', paymentController.stripeWebhook);
 payR.get('/:id/status', paymentController.checkStatus);
 app.use('/api/payments', payR);

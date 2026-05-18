@@ -96,7 +96,7 @@ export default function CartSheet({
         });
       } else {
         // MOBILE MONEY (ALL PROVIDERS)
-        await api.post('/payments/mobile/initiate', {
+        await api.post('/payments/mobile-money/initiate', {
           orderId: order._id,
           phoneNumber: phone.trim(),
           provider: paymentMethod,
