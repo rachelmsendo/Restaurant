@@ -49,6 +49,12 @@ orderRouter.get('/', authenticate, authorize('admin', 'staff', 'kitchen'), order
 orderRouter.get('/table/:tableId', orderController.getByTable);
 orderRouter.get('/:id', orderController.getOne);
 orderRouter.put('/:id/status', authenticate, authorize('admin', 'staff', 'kitchen'), orderController.updateStatus);
+orderRouter.put(
+  '/:id/payment',
+  authenticate,
+  authorize('admin', 'staff'),
+  orderController.updatePaymentStatus
+);
 
 // routes/payments.js
 const paymentRouter = express.Router();

@@ -413,6 +413,47 @@ create: async (req, res, next) => {
       res.json({ success: true, data: { order } });
     } catch (err) { next(err); }
   },
+  updatePaymentStatus: async (req, res, next) => {
+  try {
+    const { paymentStatus } = req.body;
+
+    if (!['paid', 'unpaid', 'refunded'].includes(paymentStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment status',
+      });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    // Prevent duplicate marking
+    if (order.paymentStatus === 'paid' && paymentStatus === 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order already marked as paid',
+      });
+    }
+
+    order.paymentStatus = paymentStatus;
+
+    await order.save();
+
+    res.json({
+      success: true,
+      data: { order },
+      message: `Payment marked as ${paymentStatus}`,
+    });
+  } catch (err) {
+    next(err);
+  }
+},
   updatePriority: async (req, res, next) => {
     try {
       const order = await Order.findByIdAndUpdate(req.params.id, { priority: req.body.priority }, { new: true });

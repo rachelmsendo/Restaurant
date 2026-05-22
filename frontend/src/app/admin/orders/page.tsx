@@ -69,6 +69,46 @@ export default function AdminOrdersPage() {
     finally { setUpdatingId(null); }
   };
 
+  const markAsPaid = async (order: any) => {
+  const confirmed = window.confirm(
+    `Confirm marking order ${order.orderNumber} as PAID?`
+  );
+
+  if (!confirmed) return;
+
+  setUpdatingId(order._id);
+
+  try {
+    const res = await api.put(`/orders/${order._id}/payment`, {
+      paymentStatus: 'paid',
+    });
+
+    setOrders(prev =>
+      prev.map(o =>
+        o._id === order._id
+          ? { ...o, paymentStatus: 'paid' }
+          : o
+      )
+    );
+
+    if (selectedOrder?._id === order._id) {
+      setSelectedOrder((prev: any) =>
+        prev
+          ? { ...prev, paymentStatus: 'paid' }
+          : null
+      );
+    }
+
+    toast.success('Order marked as paid');
+  } catch (err: any) {
+    toast.error(
+      err?.response?.data?.message || 'Failed to update payment'
+    );
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
   const displayOrders = orders.filter(o => {
     if (!search) return true;
     return o.orderNumber?.includes(search) || o.customerName?.toLowerCase().includes(search.toLowerCase()) || String(o.tableNumber).includes(search);
@@ -150,14 +190,29 @@ export default function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3"><StatusBadge status={order.status}/></td>
-                    <td className="px-4 py-3" onClick={e=>e.stopPropagation()}>
-                      {next && (
-                        <button onClick={() => advanceStatus(order)} disabled={updatingId===order._id}
-                          className="btn-primary py-1.5 px-3 text-xs whitespace-nowrap">
-                          {updatingId===order._id ? <Spinner size="sm"/> : `→ ${next}`}
-                        </button>
-                      )}
-                    </td>
+<td className="px-4 py-3" onClick={e=>e.stopPropagation()}>
+  <div className="flex items-center gap-2">
+    {next && (
+      <button
+        onClick={() => advanceStatus(order)}
+        disabled={updatingId===order._id}
+        className="btn-primary py-1.5 px-3 text-xs whitespace-nowrap"
+      >
+        {updatingId===order._id ? <Spinner size="sm"/> : `→ ${next}`}
+      </button>
+    )}
+
+    {order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
+      <button
+        onClick={() => markAsPaid(order)}
+        disabled={updatingId===order._id}
+        className="py-1.5 px-3 text-xs font-semibold rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all whitespace-nowrap"
+      >
+        Mark Paid
+      </button>
+    )}
+  </div>
+</td>
                   </tr>
                 );
               })}
@@ -170,10 +225,15 @@ export default function AdminOrdersPage() {
       <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)}
         title={selectedOrder ? `Order ${selectedOrder.orderNumber}` : ''}>
         {selectedOrder && (
-          <OrderDetailView order={selectedOrder}
-            onAdvance={() => advanceStatus(selectedOrder)}
-            onCancel={(reason: string) => cancelOrder(selectedOrder, reason)}
-            updating={updatingId === selectedOrder._id}/>
+<OrderDetailView
+  order={{
+    ...selectedOrder,
+    onMarkPaid: () => markAsPaid(selectedOrder),
+  }}
+  onAdvance={() => advanceStatus(selectedOrder)}
+  onCancel={(reason: string) => cancelOrder(selectedOrder, reason)}
+  updating={updatingId === selectedOrder._id}
+/>
         )}
       </Modal>
     </div>
@@ -285,6 +345,24 @@ function OrderDetailView({ order, onAdvance, onCancel, updating }: any) {
               Cancel Order
             </button>
           )}
+
+          {order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
+  <button
+    onClick={() => {
+      const confirmed = window.confirm(
+        `Mark order ${order.orderNumber} as paid?`
+      );
+
+      if (confirmed) {
+        order.onMarkPaid?.();
+      }
+    }}
+    disabled={updating}
+    className="w-full h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold transition-all"
+  >
+    {updating ? <Spinner size="sm" /> : 'Mark As Paid'}
+  </button>
+)}
           {showCancel && (
             <div className="space-y-2">
               <input className="input" placeholder="Reason for cancellation…" value={cancelReason} onChange={e=>setCancelReason(e.target.value)}/>
