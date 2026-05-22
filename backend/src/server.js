@@ -161,6 +161,12 @@ orderR.get('/', authenticate, authorize('admin', 'staff', 'kitchen'), orderContr
 orderR.get('/table/:tableId', orderController.getByTable);
 orderR.get('/:id', orderController.getOne);
 orderR.put('/:id/status', authenticate, authorize('admin', 'staff', 'kitchen'), orderController.updateStatus);
+orderR.put(
+  '/:id/payment',
+  authenticate,
+  authorize('admin', 'staff'),
+  orderController.updatePaymentStatus
+);
 orderR.patch('/:id/priority', authenticate, authorize('admin', 'staff', 'kitchen'), orderController.updatePriority);
 orderR.post('/:id/rate', orderController.addRating);
 app.use('/api/orders', orderR);
