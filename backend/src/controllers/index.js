@@ -454,6 +454,7 @@ create: async (req, res, next) => {
     next(err);
   }
 },
+
   updatePriority: async (req, res, next) => {
     try {
       const order = await Order.findByIdAndUpdate(req.params.id, { priority: req.body.priority }, { new: true });
@@ -478,7 +479,7 @@ const paymentController = {
       const order = await Order.findById(orderId);
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
       if (order.paymentStatus === 'paid') return res.status(400).json({ success: false, message: 'Already paid' });
-      const pi = await stripe.paymentIntents.create({ amount: Math.round(order.total * 100), currency: 'kes', metadata: { orderId, orderNumber: order.orderNumber } });
+      const pi = await stripe.paymentIntents.create({ amount: Math.round(order.total * 100), currency: 'TZS', metadata: { orderId, orderNumber: order.orderNumber } });
       await Payment.create({ order: orderId, amount: order.total, currency: 'TZS', method: 'stripe', status: 'pending', stripePaymentIntentId: pi.id, stripeClientSecret: pi.client_secret });
       res.json({ success: true, data: { clientSecret: pi.client_secret } });
     } catch (err) { next(err); }

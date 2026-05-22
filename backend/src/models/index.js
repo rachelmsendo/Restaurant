@@ -125,10 +125,9 @@ const orderSchema = new mongoose.Schema({
       'halopesa',
       'mixx',
       'stripe',
-      'cash',
-      null
+      'cash'
     ],
-    default: null,
+    default: "cash",
   },
   notes: { type: String },
   priority: { type: String, enum: ['normal', 'urgent'], default: 'normal' },

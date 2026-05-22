@@ -16,7 +16,15 @@ const STATUS_COLORS: Record<string,string> = {
   pending:'#f59e0b',confirmed:'#3b82f6',preparing:'#f97316',
   ready:'#22c55e',delivered:'#6b7280',cancelled:'#ef4444',
 };
-const PAY_COLORS: Record<string,string> = { mpesa:'#00a651',stripe:'#635bff',cash:'#78716c' };
+const PAY_COLORS: Record<string, string> = {
+  mpesa: '#00a651',
+  tigopesa: '#f97316',
+  airtelmoney: '#ef4444',
+  halopesa: '#10b981',
+  mixx: '#3b82f6',
+  stripe: '#635bff',
+  cash: '#78716c',
+};
 
 export default function AdminAnalyticsPage() {
   const [period, setPeriod] = useState<Period>('7d');
