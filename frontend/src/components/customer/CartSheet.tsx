@@ -14,12 +14,11 @@ type Step = 'cart' | 'checkout' | 'payment';
 
 const MOBILE_PROVIDERS = [
   { id: 'mpesa', label: 'M-Pesa', icon: '📱' },
-  { id: 'tigopesa', label: 'Tigo Pesa', icon: '🔵' },
   { id: 'airtelmoney', label: 'Airtel Money', icon: '🔴' },
   { id: 'halopesa', label: 'HaloPesa', icon: '🟡' },
-  { id: 'mixx', label: 'Mixx by Yas', icon: '🟣' },
+  { id: 'mix', label: 'Mix by Yas', icon: '🟣' },
   { id: 'stripe', label: 'Card', icon: '💳' },
-  { id: 'cash', label: 'Cash', icon: '💵' },
+  // { id: 'cash', label: 'Cash', icon: '💵' },
 ] as const;
 
 export default function CartSheet({
@@ -88,9 +87,7 @@ export default function CartSheet({
       // ─────────────────────────────
       // PAYMENT INIT
       // ─────────────────────────────
-      if (paymentMethod === 'cash') {
-        toast.success('Order placed! Pay at the counter.');
-      } else if (paymentMethod === 'stripe') {
+      if (paymentMethod === 'stripe') {
         await api.post('/payments/stripe/initiate', {
           orderId: order._id,
         });

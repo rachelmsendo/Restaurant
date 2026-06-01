@@ -18,12 +18,20 @@ const STATUS_COLORS: Record<string,string> = {
 };
 const PAY_COLORS: Record<string, string> = {
   mpesa: '#00a651',
-  tigopesa: '#f97316',
   airtelmoney: '#ef4444',
   halopesa: '#10b981',
-  mixx: '#3b82f6',
+  mix: '#3b82f6',
   stripe: '#635bff',
   cash: '#78716c',
+};
+
+const PAYMENT_LABELS: Record<string,string> = {
+  mpesa: 'M-Pesa',
+  airtelmoney: 'Airtel Money',
+  halopesa: 'HaloPesa',
+  mix: 'Mix by Yas',
+  stripe: 'Card (Stripe)',
+  cash: 'Cash',
 };
 
 export default function AdminAnalyticsPage() {

@@ -115,15 +115,14 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'],
     default: 'pending',
   },
-  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
+  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'paid' },
   paymentMethod: {
     type: String,
     enum: [
       'mpesa',
-      'tigopesa',
       'airtelmoney',
       'halopesa',
-      'mixx',
+      'mix',
       'stripe',
       'cash'
     ],
@@ -164,10 +163,9 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     enum: [
       'mpesa',
-      'tigopesa',
       'airtelmoney',
       'halopesa',
-      'mixx',
+      'mix',
       'stripe',
       'cash'
     ],

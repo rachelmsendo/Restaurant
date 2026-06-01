@@ -96,7 +96,7 @@ export default function AdminTablesPage() {
       </div>
 
       {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* <div className="grid grid-cols-3 gap-4 mb-6">
         {[
           { label: 'Available', count: tables.filter(t => t.status === 'available').length, color: 'text-green-600', bg: 'bg-green-50' },
           { label: 'Occupied', count: tables.filter(t => t.status === 'occupied').length, color: 'text-orange-600', bg: 'bg-orange-50' },
@@ -107,7 +107,7 @@ export default function AdminTablesPage() {
             <p className="text-xs text-stone-500 mt-1">{s.label}</p>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Tables grid */}
       {loading ? (
@@ -137,13 +137,13 @@ export default function AdminTablesPage() {
               </div>
 
               {/* Status pill */}
-              <select value={table.status}
+              {/* <select value={table.status}
                 onChange={e => updateStatus(table, e.target.value)}
                 className={cn('badge text-xs cursor-pointer border-0 outline-none', STATUS_COLOR[table.status])}>
                 <option value="available">Available</option>
                 <option value="occupied">Occupied</option>
                 <option value="reserved">Reserved</option>
-              </select>
+              </select> */}
 
               {/* Actions */}
               <div className="flex gap-1.5 w-full">

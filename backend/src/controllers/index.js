@@ -498,10 +498,9 @@ initiateMobileMoney: async (req, res, next) => {
 
     const supported = [
       'mpesa',
-      'tigopesa',
       'airtelmoney',
       'halopesa',
-      'mixx',
+      'mix',
     ];
 
     if (!supported.includes(provider)) {

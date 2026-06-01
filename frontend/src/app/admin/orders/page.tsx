@@ -244,7 +244,6 @@ function OrderDetailView({ order, onAdvance, onCancel, updating }: any) {
   const [showCancel, setShowCancel] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const next = getNextStatus(order.status);
-  const elapsed = Math.floor((Date.now()-new Date(order.createdAt).getTime())/60000);
 
   return (
     <div className="overflow-y-auto max-h-[80vh]">
@@ -253,7 +252,7 @@ function OrderDetailView({ order, onAdvance, onCancel, updating }: any) {
         <div className={cn('rounded-2xl p-4 text-center border-2',
           order.status==='ready'?'bg-green-50 border-green-200':order.status==='cancelled'?'bg-red-50 border-red-200':'bg-stone-50 border-stone-200')}>
           <StatusBadge status={order.status}/>
-          <p className="text-xs text-stone-400 mt-1">Order placed {elapsed}min ago</p>
+          <p className="text-xs text-stone-400 mt-1">Order placed {timeAgo(order.createdAt)}</p>
           {order.estimatedReadyAt&&order.status==='preparing'&&(
             <p className="text-xs text-brand-600 font-medium mt-0.5">Est. ready: {new Date(order.estimatedReadyAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</p>
           )}
