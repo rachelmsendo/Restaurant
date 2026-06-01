@@ -560,6 +560,37 @@ function KitchenOrderCard({ order, onAdvance, onDetail, updating }: any) {
           </button>
         </div>
       )}
+      {/* Payment Status */}
+<div className="bg-stone-800 border border-stone-700 rounded-xl p-3">
+  <div className="flex items-center justify-between">
+    <span className="text-stone-300 text-sm font-medium">
+      Payment Status
+    </span>
+
+    <span
+      className={cn(
+        "px-3 py-1 rounded-full text-xs font-black uppercase",
+        order.paymentStatus === "paid" &&
+          "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+        order.paymentStatus === "unpaid" &&
+          "bg-red-500/20 text-red-400 border border-red-500/30",
+        order.paymentStatus === "refunded" &&
+          "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+      )}
+    >
+      {order.paymentStatus}
+    </span>
+  </div>
+
+  {order.paymentMethod && (
+    <p className="text-stone-400 text-xs mt-2">
+      Method:{" "}
+      <span className="text-stone-200 font-semibold capitalize">
+        {order.paymentMethod}
+      </span>
+    </p>
+  )}
+</div>
     </motion.div>
   );
 }
@@ -575,7 +606,7 @@ function KitchenOrderDetail({ order, onAdvance, updating }: any) {
         <div className={cn('rounded-2xl p-4 text-center border-2',
           order.status==='ready'?'bg-emerald-950/60 border-emerald-500':order.status==='preparing'?'bg-orange-950/60 border-orange-500':'bg-stone-800 border-stone-700')}>
           <p className="font-black text-white capitalize text-xl tracking-wide">{order.status}</p>
-          <p className="text-stone-200 text-sm font-medium mt-1">{elapsed} minutes ago · Table {order.tableNumber}</p>
+          <p className="text-stone-200 text-sm font-medium mt-1">{timeAgo(order.createdAt)} · Table {order.tableNumber}</p>
           {order.estimatedReadyAt&&order.status==='preparing'&&(
             <p className="text-brand-400 text-sm font-bold mt-1.5 bg-brand-950/40 inline-block px-3 py-0.5 rounded-full border border-brand-900/60">Est. ready: {new Date(order.estimatedReadyAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</p>
           )}
@@ -585,8 +616,14 @@ function KitchenOrderDetail({ order, onAdvance, updating }: any) {
         {(order.customerName||order.customerPhone)&&(
           <div className="bg-stone-800 border border-stone-700 rounded-xl p-3">
             {order.customerName&&<p className="text-white font-semibold flex items-center gap-1.5"><span>👤</span> {order.customerName}</p>}
-            {order.customerPhone&&<p className="text-stone-200 text-sm font-mono mt-1 flex items-center gap-1.5スタ"><span>📞</span> {order.customerPhone}</p>}
-          </div>
+{order.customerPhone && (
+  <a
+    href={`tel:${order.customerPhone}`}
+    className="inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-lg bg-stone-700 hover:bg-stone-600 text-stone-100 text-sm font-semibold transition"
+  >
+    📞 Call {order.customerPhone}
+  </a>
+)}          </div>
         )}
 
         {/* All items — full detail for kitchen */}
@@ -616,13 +653,65 @@ function KitchenOrderDetail({ order, onAdvance, updating }: any) {
           </div>
         )}
 
-        {next && (
-          <button onClick={onAdvance} disabled={updating}
-            className={cn('w-full h-12 rounded-xl font-black text-white text-base transition-all flex items-center justify-center gap-2 shadow-lg mt-2',
-              NEXT_BTN[order.status]||'bg-stone-600', 'disabled:opacity-50')}>
-            {updating ? <Spinner size="sm" className="text-white"/> : NEXT_LABEL[order.status]}
-          </button>
-        )}
+       {order.status === "cancelled" ? (
+  <div className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3">
+    <p className="text-xs font-semibold text-red-600 uppercase">
+      Cancellation Reason
+    </p>
+    <p className="text-sm text-red-800 mt-1">
+      {order.cancelReason || "No reason provided"}
+    </p>
+  </div>
+) : (
+  next && (
+    <button
+      onClick={onAdvance}
+      disabled={updating}
+      className={cn(
+        "w-full h-12 rounded-xl font-black text-white text-base transition-all flex items-center justify-center gap-2 shadow-lg mt-2",
+        NEXT_BTN[order.status] || "bg-stone-600",
+        "disabled:opacity-50"
+      )}
+    >
+      {updating ? (
+        <Spinner size="sm" className="text-white" />
+      ) : (
+        NEXT_LABEL[order.status]
+      )}
+    </button>
+  )
+)}
+{/* Payment Status */}
+<div className="bg-stone-800 border border-stone-700 rounded-xl p-3">
+  <div className="flex items-center justify-between">
+    <span className="text-stone-300 text-sm font-medium">
+      Payment Status
+    </span>
+
+    <span
+      className={cn(
+        "px-3 py-1 rounded-full text-xs font-black uppercase",
+        order.paymentStatus === "paid" &&
+          "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+        order.paymentStatus === "unpaid" &&
+          "bg-red-500/20 text-red-400 border border-red-500/30",
+        order.paymentStatus === "refunded" &&
+          "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+      )}
+    >
+      {order.paymentStatus}
+    </span>
+  </div>
+
+  {order.paymentMethod && (
+    <p className="text-stone-400 text-xs mt-2">
+      Method:{" "}
+      <span className="text-stone-200 font-semibold capitalize">
+        {order.paymentMethod}
+      </span>
+    </p>
+  )}
+</div>
       </div>
     </div>
   );

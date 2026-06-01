@@ -110,13 +110,50 @@ export function OrderTracker({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     <Modal isOpen={isOpen} onClose={onClose} title={`Order #${order.orderNumber}`}>
       <div className="p-5 space-y-5">
         {/* Status hero */}
-        <div className={`rounded-2xl p-5 text-center ${order.status==='ready'?'bg-green-50 border-2 border-green-300':order.status==='cancelled'?'bg-red-50 border-2 border-red-200':'bg-stone-50 border-2 border-stone-200'}`}>
-          <p className="text-4xl mb-2">{STATUS_ICON[order.status]||'📋'}</p>
-          <p className="font-bold text-stone-900 text-lg">{order.status==='ready'?'Your food is ready!':order.status==='preparing'?'Chef is cooking your order…':order.status==='pending'?'Waiting for confirmation…':order.status==='confirmed'?'Order confirmed!':order.status==='delivered'?'Enjoy your meal!':'Order cancelled'}</p>
-          {order.estimatedReadyAt&&order.status==='preparing'&&(
-            <p className="text-sm text-brand-600 font-medium mt-1">Est. ready at {new Date(order.estimatedReadyAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</p>
-          )}
-        </div>
+<div
+  className={`rounded-2xl p-5 text-center ${
+    order.status === "ready"
+      ? "bg-green-50 border-2 border-green-300"
+      : order.status === "cancelled"
+      ? "bg-red-50 border-2 border-red-200"
+      : "bg-stone-50 border-2 border-stone-200"
+  }`}
+>
+  <p className="text-4xl mb-2">
+    {STATUS_ICON[order.status] || "📋"}
+  </p>
+
+  <p className="font-bold text-stone-900 text-lg">
+    {order.status === "ready"
+      ? "Your food is ready!"
+      : order.status === "preparing"
+      ? "Chef is cooking your order…"
+      : order.status === "pending"
+      ? "Waiting for confirmation…"
+      : order.status === "confirmed"
+      ? "Order confirmed!"
+      : order.status === "delivered"
+      ? "Enjoy your meal!"
+      : "Order cancelled"}
+  </p>
+
+  {/* Cancellation Reason */}
+  {order.status === "cancelled" && order.cancelReason && (
+    <p className="text-sm text-red-600 font-medium mt-2 bg-red-100 px-3 py-2 rounded-lg">
+      Reason: {order.cancelReason}
+    </p>
+  )}
+
+  {order.estimatedReadyAt && order.status === "preparing" && (
+    <p className="text-sm text-brand-600 font-medium mt-1">
+      Est. ready at{" "}
+      {new Date(order.estimatedReadyAt).toLocaleTimeString("en", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </p>
+  )}
+</div>
 
         {/* Progress steps */}
         {order.status!=='cancelled'&&(
