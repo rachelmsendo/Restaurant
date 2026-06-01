@@ -163,7 +163,7 @@ async function seed() {
 
       if (od.paymentStatus === 'paid') {
         await (require('../models').Payment).create({
-          order: order._id, amount: total, currency: 'KES',
+          order: order._id, amount: total, currency: 'TSH',
           method: od.paymentMethod || 'cash', status: 'completed',
           paidAt: od.createdAt,
         });
