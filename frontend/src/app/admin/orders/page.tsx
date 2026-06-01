@@ -259,19 +259,45 @@ function OrderDetailView({ order, onAdvance, onCancel, updating }: any) {
         </div>
 
         {/* Info grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            {l:'Table', v:`Table ${order.tableNumber}`},
-            {l:'Customer', v:order.customerName||'Anonymous'},
-            {l:'Phone', v:order.customerPhone||'—'},
-            {l:'Payment', v:<span className={cn('badge text-xs',order.paymentStatus==='paid'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700')}>{order.paymentStatus}</span>},
-          ].map(({l,v})=>(
-            <div key={l} className="bg-stone-50 rounded-xl p-3">
-              <p className="text-xs text-stone-400 mb-0.5">{l}</p>
-              <p className="text-sm font-semibold text-stone-900">{v as any}</p>
-            </div>
-          ))}
-        </div>
+<div className="grid grid-cols-2 gap-3">
+  {[
+    { l: "Table", v: `Table ${order.tableNumber}` },
+    { l: "Customer", v: order.customerName || "Anonymous" },
+    {
+      l: "Phone",
+      v: order.customerPhone ? (
+        <a
+          href={`tel:${order.customerPhone}`}
+          className="text-sm font-semibold text-blue-600 hover:underline"
+        >
+          {order.customerPhone}
+        </a>
+      ) : (
+        "—"
+      ),
+    },
+    {
+      l: "Payment",
+      v: (
+        <span
+          className={cn(
+            "badge text-xs",
+            order.paymentStatus === "paid"
+              ? "bg-green-100 text-green-700"
+              : "bg-amber-100 text-amber-700"
+          )}
+        >
+          {order.paymentStatus}
+        </span>
+      ),
+    },
+  ].map(({ l, v }) => (
+    <div key={l} className="bg-stone-50 rounded-xl p-3">
+      <p className="text-xs text-stone-400 mb-0.5">{l}</p>
+      <p className="text-sm font-semibold text-stone-900">{v}</p>
+    </div>
+  ))}
+</div>
 
         {/* Items */}
         <div>
