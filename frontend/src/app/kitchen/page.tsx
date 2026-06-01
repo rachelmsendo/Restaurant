@@ -519,7 +519,7 @@ function KitchenOrderCard({ order, onAdvance, onDetail, updating }: any) {
           </div>
           <div className="text-right">
             <div className={cn('text-base font-black tracking-tight', urgent?'text-red-400':'text-stone-100')}>
-              {urgent?'⚠️ ':''}{elapsed} min
+              {urgent?'⚠️ ':''}{timeAgo(order.createdAt)}
             </div>
             <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-md uppercase inline-block mt-0.5', statusColors[order.status] || 'bg-stone-800 text-stone-300')}>
               {order.status}
