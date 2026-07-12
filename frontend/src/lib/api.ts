@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://restaurantms-backend.onrender.com/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://restaurant-backend-0qsy.onrender.com/api',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
